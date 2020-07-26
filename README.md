@@ -38,10 +38,13 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 ### CONSTANTS
 
 `SEARCH_SUCCESS (0)` - search was successful
+
 `SEARCH_FAILURE (1)` - search failed
+
 `BYTES_UNEVEN (2)` - bytes attempted to be searched were uneven: ex: "41b". Use "410b" instead
 
 ### Typedefs
 
 `search_t (int)` 
+
 `byte_t (unsigned char)`
