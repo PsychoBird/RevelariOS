@@ -43,6 +43,8 @@ void interact(pid_t pid, mach_port_t task) {
             printf(GOOD"List of commands:\n"
                    MAGENTA "search (s) " GREEN "[bytes] " WHITE "- search " GREEN"[bytes] " WHITE "(ex: s 434231)\n"
                    MAGENTA "searchstr (ss) " GREEN "[string] " WHITE "- search " GREEN"[string] " WHITE "(ex: ss CBA)\n"
+                   MAGENTA "write (w) " GREEN "[bytes] " WHITE "- write " GREEN"[bytes] " WHITE "to scanned address (ex: w 434231)\n"
+                   MAGENTA "writestr (ws) " GREEN "[string] " WHITE "- write " GREEN"[string] " WHITE "to scanned address (ex: ws CBA)\n"
                    MAGENTA "readmem (rm) " GREEN "[lines] " WHITE "- read " GREEN "[lines] " WHITE "of last search's address\n"
                    MAGENTA "readmemstr (rms) " GREEN "[lines] " WHITE "- read " GREEN "[lines] " WHITE "of last search's address as a string\n"
                    MAGENTA "pid " GREEN "[pid] " WHITE "- changes pid to new [pid]\n"
@@ -91,6 +93,16 @@ void interact(pid_t pid, mach_port_t task) {
         }
         else if (strcmp(args[0], "search\n") == 0 || strcmp(args[0], "s\n") == 0) {
             printf(ERROR"Not enough arguments for search!\n"); }
+        
+        
+        //search_read (2 args)
+        else if ((strcmp(args[0], "write") == 0 || strcmp(args[0], "w") == 0) && args[1][0] != '\0') { write_data(task, false, out, args[1]); }
+        else if (strcmp(args[0], "write\n") == 0 || strcmp(args[0], "w\n") == 0) {
+            printf(ERROR"Not enough arguments for write!\n"); }
+        
+        else if ((strcmp(args[0], "writestr") == 0 || strcmp(args[0], "ws") == 0) && args[1][0] != '\0') { write_data(task, true, out, args[1]); }
+        else if (strcmp(args[0], "writestr\n") == 0 || strcmp(args[0], "ws\n") == 0) {
+            printf(ERROR"Not enough arguments for writestr!\n"); }
         
         
         //search_read (2 args)

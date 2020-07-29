@@ -9,6 +9,7 @@ kern_return_t get_region_size(mach_port_t task, vm_address_t *baseaddr, vm_addre
     mach_port_t object = 0;
     kern_return_t kret;
     int id = 0;
+    bool found = false;
     
     while (1) {
         addr += size;
@@ -20,7 +21,8 @@ kern_return_t get_region_size(mach_port_t task, vm_address_t *baseaddr, vm_addre
             return KERN_FAILURE; }
         id++;
         
-        if (id == 3) {
+        if (addr > 0 && !found) {
+            found = true;
             *baseaddr = addr;
         }
     }
@@ -65,7 +67,7 @@ kern_return_t read_lines(mach_port_t task, vm_address_t addr, int lines, bool pr
                     }
                 }
                 else {
-                    if ((int) readOut[i] >= 41 && (int) readOut[i] <= 126) {
+                    if ((int) readOut[i] >= 33 && (int) readOut[i] <= 126) {
                         printf("%c ", readOut[i]);
                     } else {
                         printf(RED"? "WHITE);
@@ -83,8 +85,60 @@ kern_return_t read_lines(mach_port_t task, vm_address_t addr, int lines, bool pr
     return KERN_SUCCESS;
 }
 
+kern_return_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[100]) {
+    if (strlen(in) > 100) {
+        printf(ERROR"Data in is too large! (> 100)\n");
+        return KERN_FAILURE;
+    }
+    
+    in[strlen(in)-1] = '\0';
+    size_t bytes = strlen(in);
+    kern_return_t kret;
+    int scannum;
+    
+    if (!isString) {
+        byte_t writebyte[strlen(in)/2];
+        scannum = strlen(in)/2;
+        if (strlen(in) % 2 != 0) {
+            printf(ERROR"Enter an even number of bytes!\n");
+            return KERN_FAILURE;
+        }
+        char tocmpbyte[50][2];
+        int numin = 0;
+        for (int i=0; i<scannum; i++) {
+            tocmpbyte[i][0] = in[numin];
+            tocmpbyte[i][1] = in[numin+1];
+            numin += 2;
+            writebyte[i] = (uint8_t) strtol(tocmpbyte[i], NULL, 16);
+        }
+        printf(GOOD"Writing %s to 0x%lx\n", in, addr);
+        kret = vm_write(task, addr, &writebyte, sizeof(writebyte));
+    }
+    else {
+        byte_t writebyte[strlen(in)];
+        scannum = strlen(in);
+        for (int i=0; i<scannum; i++) {
+            writebyte[i] = (uint8_t) in[i];
+        }
+        printf(GOOD"Writing %s to 0x%lx\n", in, addr);
+        kret = vm_write(task, addr, &writebyte, sizeof(writebyte));
+    }
+    
+
+    if (kret == KERN_SUCCESS) {
+        printf(GOOD"Successfully wrote data!\n");
+    }
+    else {
+        printf(ERROR"Write failed!\n");
+    }
+    
+}
 
 kern_return_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr, vm_address_t end, vm_address_t *outaddr, char in[100]) {
+    if (strlen(in) > 100) {
+        printf(ERROR"Data in is too large! (> 100)\n");
+        return KERN_FAILURE;
+    }
     int pgsz = getpagesize();
     
     size_t bytes = pgsz;
@@ -106,9 +160,7 @@ kern_return_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr
             tocmpbyte[i][1] = in[numin+1];
             numin += 2;
             cmpbyte[i] = (uint8_t) strtol(tocmpbyte[i], NULL, 16);
-            //printf(GOOD"0x%c%c | %d\n", tocmpbyte[i][0], tocmpbyte[i][1], cmpbyte[i]);
         }
-        //printf("\n");
     }
     else {
         scannum = strlen(in)-1;

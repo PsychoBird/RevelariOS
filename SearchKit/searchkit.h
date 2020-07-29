@@ -14,6 +14,9 @@
 #define SEARCH_SUCCESS 0
 #define SEARCH_FAILURE 1
 #define BYTES_UNEVEN 2
+#define DATA_TOO_LARGE 3
+#define WRITE_SUCCESS 4
+#define WRITE_FAILURE 5
 
 typedef int search_t;
 typedef unsigned char byte_t;
@@ -27,6 +30,7 @@ kern_return_t get_region_size(mach_port_t task, vm_address_t *baseaddr, vm_addre
     mach_port_t object = 0;
     kern_return_t kret;
     int id = 0;
+    bool found = false;
     
     while (1) {
         addr += size;
@@ -38,7 +42,8 @@ kern_return_t get_region_size(mach_port_t task, vm_address_t *baseaddr, vm_addre
             return KERN_FAILURE; }
         id++;
         
-        if (id == 3) {
+        if (addr > 0 && !found) {
+            found = true;
             *baseaddr = addr;
         }
     }
@@ -47,7 +52,54 @@ kern_return_t get_region_size(mach_port_t task, vm_address_t *baseaddr, vm_addre
     return KERN_SUCCESS;
 }
 
+search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[100]) {
+    if (strlen(in) > 100) {
+        return DATA_TOO_LARGE;
+    }
+    
+    in[strlen(in)-1] = '\0';
+    size_t bytes = strlen(in);
+    kern_return_t kret;
+    int scannum;
+    
+    if (!isString) {
+        byte_t writebyte[strlen(in)/2];
+        scannum = strlen(in)/2;
+        if (strlen(in) % 2 != 0) {
+            return BYTES_UNEVEN;
+        }
+        char tocmpbyte[50][2];
+        int numin = 0;
+        for (int i=0; i<scannum; i++) {
+            tocmpbyte[i][0] = in[numin];
+            tocmpbyte[i][1] = in[numin+1];
+            numin += 2;
+            writebyte[i] = (uint8_t) strtol(tocmpbyte[i], NULL, 16);
+        }
+        kret = vm_write(task, addr, &writebyte, sizeof(writebyte));
+    }
+    else {
+        byte_t writebyte[strlen(in)];
+        scannum = strlen(in);
+        for (int i=0; i<scannum; i++) {
+            writebyte[i] = (uint8_t) in[i];
+        }
+        kret = vm_write(task, addr, &writebyte, sizeof(writebyte));
+    }
+    
+
+    if (kret == KERN_SUCCESS) {
+        return WRITE_SUCCESS;
+    }
+    
+    return WRITE_FAILURE;
+}
+
 search_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr, vm_address_t endaddr, vm_address_t *outaddr, char in[100]) {
+    if (strlen(in) > 100) {
+        return DATA_TOO_LARGE;
+    }
+    
     int pgsz = getpagesize();
     
     size_t bytes = pgsz;

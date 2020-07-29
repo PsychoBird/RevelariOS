@@ -31,10 +31,18 @@ kern_return_t get_region_size(mach_port_t task,
                               vm_address_t *baseaddr,
                               vm_address_t *endaddr);
 
+
 kern_return_t read_lines(mach_port_t task,
                          vm_address_t addr,
                          int lines,
                          bool printchar);
+
+
+kern_return_t write_data(mach_port_t task,
+                         bool isString,
+                         vm_address_t addr,
+                         char in[100]);
+
 
 kern_return_t search_data(mach_port_t task,
                           bool isString,
