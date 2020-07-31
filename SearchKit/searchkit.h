@@ -57,7 +57,6 @@ search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[
         return DATA_TOO_LARGE;
     }
     
-    in[strlen(in)-1] = '\0';
     size_t bytes = strlen(in);
     kern_return_t kret;
     int scannum;
@@ -110,8 +109,8 @@ search_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr, vm_
     int scannum;
     
     if (!isString) {
-        scannum = (strlen(in)-1)/2;
-        if ((strlen(in)-1) % 2 != 0) {
+        scannum = strlen(in)/2;
+        if (strlen(in) % 2 != 0) {
             return BYTES_UNEVEN;
         }
         char tocmpbyte[50][2];
@@ -124,7 +123,7 @@ search_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr, vm_
         }
     }
     else {
-        scannum = strlen(in)-1;
+        scannum = strlen(in);
         for (int i=0; i<scannum; i++) {
             cmpbyte[i] = (uint8_t) in[i];
         }
