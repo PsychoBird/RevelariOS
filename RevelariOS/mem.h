@@ -46,7 +46,9 @@ kern_return_t write_data(mach_port_t task,
 
 kern_return_t search_data(mach_port_t task,
                           bool isString,
+                          bool quitOnFirstResult,
                           vm_address_t baseaddr,
                           vm_address_t end,
-                          vm_address_t *outaddr,
+                          vm_address_t *outaddr[256],
+                          uint8_t *resultnum,
                           char in[100]);

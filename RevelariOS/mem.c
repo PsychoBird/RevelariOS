@@ -10,23 +10,23 @@ kern_return_t get_region_size(mach_port_t task, vm_address_t *baseaddr, vm_addre
     kern_return_t kret;
     int id = 0;
     bool found = false;
-    
+
     while (1) {
         addr += size;
         kret = vm_region_64(task, &addr, &size, flavor, (vm_region_info_64_t) &info, &count, &object);
-        
+
         if (kret != KERN_SUCCESS) {
             break; }
         else if (id < 3 && kret != KERN_SUCCESS) {
             return KERN_FAILURE; }
         id++;
-        
+
         if (addr > 0 && !found) {
             found = true;
             *baseaddr = addr;
         }
     }
-    
+
     *endaddr = addr;
     return KERN_SUCCESS;
 }
@@ -36,11 +36,11 @@ kern_return_t read_lines(mach_port_t task, vm_address_t addr, int lines, bool pr
         printf(ERROR"Read address is 0x0. Did you do a scan yet?\n");
         return KERN_FAILURE;
     }
-    
+
     int sub = addr % 16;
     vm_address_t zeroaddr = addr - sub;
     kern_return_t kret;
-    
+
     printf(GOOD"Reading %d lines of memory from address: 0x%lx\n", lines, addr);
     printf(GREEN "0x%lx " WHITE "| ", addr);
     if (!printchar) {
@@ -49,11 +49,11 @@ kern_return_t read_lines(mach_port_t task, vm_address_t addr, int lines, bool pr
     else {
         printf(YELLOW "0 1 2 3 4 5 6 7 8 9 A B C D E F "WHITE"|\n");
     }
-    
-    
+
+
     byte_t readOut[16];
     vm_size_t bytes = 16;
-    
+
     for (int j = 0; j < lines; j++) {
         printf(CYAN "0x%lx " WHITE "| ", zeroaddr);
         kret = vm_read_overwrite(task, zeroaddr, bytes, (vm_offset_t) &readOut, &bytes);
@@ -90,12 +90,12 @@ kern_return_t write_data(mach_port_t task, bool isString, vm_address_t addr, cha
         printf(ERROR"Data in is too large! (> 100)\n");
         return KERN_FAILURE;
     }
-    
+
     in[strlen(in)-1] = '\0';
     size_t bytes = strlen(in);
     kern_return_t kret;
     int scannum;
-    
+
     if (!isString) {
         byte_t writebyte[strlen(in)/2];
         scannum = strlen(in)/2;
@@ -123,7 +123,7 @@ kern_return_t write_data(mach_port_t task, bool isString, vm_address_t addr, cha
         printf(GOOD"Writing %s to 0x%lx\n", in, addr);
         kret = vm_write(task, addr, &writebyte, sizeof(writebyte));
     }
-    
+
 
     if (kret == KERN_SUCCESS) {
         printf(GOOD"Successfully wrote data!\n");
@@ -131,27 +131,28 @@ kern_return_t write_data(mach_port_t task, bool isString, vm_address_t addr, cha
     else {
         printf(ERROR"Write failed!\n");
     }
-    
+
 }
 
-kern_return_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr, vm_address_t end, vm_address_t *outaddr, char in[100]) {
+kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm_address_t baseaddr, vm_address_t end, vm_address_t *outaddr[256], uint8_t *resultnum, char in[100]) {
     if (strlen(in) > 100) {
         printf(ERROR"Data in is too large! (> 100)\n");
         return KERN_FAILURE;
     }
     int pgsz = getpagesize();
-    
+
     size_t bytes = pgsz;
     byte_t readOut[pgsz];
     kern_return_t kret;
     int accuracy = 0;
     uint8_t cmpbyte[100];
     int scannum;
-    
+
     if (!isString) {
         scannum = (strlen(in)-1)/2;
         if ((strlen(in)-1) % 2 != 0) {
             printf(ERROR"Enter an even number of bytes!\n");
+            return KERN_FAILURE;
         }
         char tocmpbyte[50][2];
         int numin = 0;
@@ -168,7 +169,8 @@ kern_return_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr
             cmpbyte[i] = (uint8_t) in[i];
         }
     }
-    
+
+    uint8_t foundtotal = 0;
     for (; baseaddr < end; baseaddr+=pgsz) {
         kret = vm_read_overwrite(task, baseaddr, bytes, (vm_offset_t) &readOut, &bytes);
         int i;
@@ -187,16 +189,42 @@ kern_return_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr
                         break;
                     }
                     if (accuracy == scannum) {
-                        printf(GOOD"Scan found matching string at 0x%lx\n", baseaddr+i);
-                        *outaddr = baseaddr+i;
-                        return KERN_SUCCESS;
+                        printf(GOOD"Scan found matching data #%d at 0x%lx\n", foundtotal+1, baseaddr+i);
+                        if (quitOnFirstResult) {
+                            *resultnum = foundtotal;
+                            *outaddr = baseaddr+i;
+                            return KERN_SUCCESS;
+                        }
+                        else {
+                            *(outaddr + foundtotal) = baseaddr+i;
+                            foundtotal++;
+                            if (foundtotal == 255) {
+                                printf(ERROR"Found max number of supported results!\n");
+                                *resultnum = foundtotal;
+                                return KERN_FAILURE;
+                            }
+                        }
                     }
                 }
             }
         }
     }
-    
-    printf(ERROR"No matching string found!\n");
-    *outaddr = 0;
+
+
+    if (quitOnFirstResult) {
+        printf(ERROR"Could not find data!\n");
+        *resultnum = 0;
+        *outaddr = 0;
+        return KERN_FAILURE;
+    }
+    if (foundtotal > 0) {
+        printf(GOOD"Search complete! RevelariOS found %d results\n", foundtotal);
+    }
+    else {
+        printf(ERROR"Could not find data!\n");
+        *resultnum = 0;
+        *outaddr = 0;
+        return KERN_FAILURE;
+    }
     return KERN_SUCCESS;
 }
