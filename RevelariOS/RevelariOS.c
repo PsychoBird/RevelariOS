@@ -159,7 +159,7 @@ void interact(pid_t pid, mach_port_t task) {
                 printf(ERROR"No results available to print!\n");
             }
             else {
-                printf(GOOD"Printing %d result(s) from last scan...\n");
+                printf(GOOD"Printing %d result(s) from last scan...\n", resultnum);
                 for (int i=0; i<resultnum; i++) {
                     printf("0x%lx\n", out[i]);
                 }

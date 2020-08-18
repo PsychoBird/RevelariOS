@@ -4,11 +4,15 @@ RevelariOS is a CLI memory scanner meant for the average user. SearchKit (search
 
 ## RevelariOS CLI Features:
 
-- search bytes from memory (search)
-- search string from memory (searchstr)
-- write bytes to memory (write)
-- write string to memory (writestr)
-- read the memory in a hex view around the address returned by the scan
+- Search memory for instances of bytes in memory
+- Search memory for instances of string in memory
+- Print all found results
+- Write bytes to memory
+- Write string to memory
+- Read lines of memory as bytes
+- Read lines of memory as a chars
+- Pause / Resume current task
+
 
 Make sure to sign RevelariOS with ent.xml! RevelariOS can't operate without proper entitlements.
 
@@ -60,6 +64,6 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 
 ### Typedefs
 
-`search_t (int)` 
+`search_t (int)`
 
 `byte_t (unsigned char)`

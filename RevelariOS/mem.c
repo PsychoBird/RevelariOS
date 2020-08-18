@@ -189,7 +189,6 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
                         break;
                     }
                     if (accuracy == scannum) {
-                        printf(GOOD"Scan found matching data #%d at 0x%lx\n", foundtotal+1, baseaddr+i);
                         if (quitOnFirstResult) {
                             *resultnum = foundtotal;
                             *outaddr = baseaddr+i;
@@ -198,6 +197,7 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
                         else {
                             *(outaddr + foundtotal) = baseaddr+i;
                             foundtotal++;
+                            *resultnum = foundtotal;
                             if (foundtotal == 255) {
                                 printf(ERROR"Found max number of supported results!\n");
                                 *resultnum = foundtotal;
