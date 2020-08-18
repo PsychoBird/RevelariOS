@@ -1,4 +1,4 @@
-#include "searchkit.h"
+#include "SearchKit.h"
 
 int main() {
     mach_port_t task;

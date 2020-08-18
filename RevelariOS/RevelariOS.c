@@ -6,10 +6,10 @@ void interact(pid_t pid, mach_port_t task) {
 
     vm_address_t base;
     vm_address_t end;
-    vm_address_t out[256];
-    uint8_t resultnum = 0;
+    vm_address_t out[SEARCH_MAX];
+    result_t resultnum = 0;
     base = end = 0;
-    char in[100];
+    char in[MAX_INPUT_DATA];
 
     printf(GOOD"To list RevelariOS commands, type 'help'\n");
 

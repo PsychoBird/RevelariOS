@@ -16,7 +16,7 @@ typedef uint8_t result_t;
 #define WRITE_BAD_ADDRESS 6
 
 #define SEARCH_MAX ((result_t) (~0 >> 1)) + 1
-#define PAGE_SIZE getpagesize()
+#define READ_PAGE_SIZE getpagesize()
 #define MAX_INPUT_DATA 100
 
 
@@ -52,17 +52,16 @@ kern_return_t get_region_size(mach_port_t task, vm_address_t *baseaddr, vm_addre
 }
 
 
-kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm_address_t baseaddr, vm_address_t endaddr, vm_address_t *outaddr[SEARCH_MAX], result_t *resultnum, char in[MAX_INPUT_DATA]) {
+search_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm_address_t baseaddr, vm_address_t endaddr, vm_address_t *outaddr[SEARCH_MAX], result_t *resultnum, char in[MAX_INPUT_DATA]) {
     if (strlen(in) > MAX_INPUT_DATA) {
         return DATA_TOO_LARGE;
     }
-    int pgsz = getpagesize();
 
-    size_t bytes = pgsz;
-    byte_t readOut[pgsz];
+    size_t bytes = READ_PAGE_SIZE;
+    byte_t readOut[READ_PAGE_SIZE];
     kern_return_t kret;
     int accuracy = 0;
-    uint8_t cmpbyte[100];
+    uint8_t cmpbyte[MAX_INPUT_DATA];
     int scannum;
 
     if (!isString) {
@@ -70,7 +69,7 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
         if (strlen(in) % 2 != 0) {
             return BYTES_UNEVEN;
         }
-        char tocmpbyte[50][2];
+        char tocmpbyte[MAX_INPUT_DATA / 2][2];
         int numin = 0;
         for (int i=0; i<scannum; i++) {
             tocmpbyte[i][0] = in[numin];
@@ -87,17 +86,17 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
     }
 
     result_t foundtotal = 0;
-    for (; baseaddr < endaddr; baseaddr+=pgsz) {
+    for (; baseaddr < endaddr; baseaddr+=READ_PAGE_SIZE) {
         kret = vm_read_overwrite(task, baseaddr, bytes, (vm_offset_t) &readOut, &bytes);
         int i;
-        for (i=0; i < pgsz; i++) {
+        for (i=0; i < READ_PAGE_SIZE; i++) {
             if (kret != KERN_SUCCESS) {
                 break;
             }
             accuracy = 0;
             if (cmpbyte[0] == readOut[i]) {
                 accuracy++;
-                for (int j=(i+0x1); j<pgsz; j++) {
+                for (int j=(i+0x1); j<READ_PAGE_SIZE; j++) {
                     if (cmpbyte[accuracy] == (uint8_t) readOut[j]) {
                         accuracy++;
                     }
@@ -113,6 +112,7 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
                         else {
                             *(outaddr + foundtotal) = baseaddr+i;
                             foundtotal++;
+                            *resultnum = foundtotal;
                             if (foundtotal == SEARCH_MAX-1) {
                                 *resultnum = foundtotal;
                                 return SEARCH_SUCCESS;
@@ -132,11 +132,11 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
     return SEARCH_SUCCESS;
 }
 
-search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[100]) {
+search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[MAX_INPUT_DATA]) {
     if (addr == 0x0) {
         return WRITE_BAD_ADDRESS;
     }
-    if (strlen(in) > 100) {
+    if (strlen(in) > MAX_INPUT_DATA) {
         return DATA_TOO_LARGE;
     }
 
@@ -150,7 +150,7 @@ search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[
         if (strlen(in) % 2 != 0) {
             return BYTES_UNEVEN;
         }
-        char tocmpbyte[50][2];
+        char tocmpbyte[MAX_INPUT_DATA / 2][2];
         int numin = 0;
         for (int i=0; i<scannum; i++) {
             tocmpbyte[i][0] = in[numin];

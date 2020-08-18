@@ -85,10 +85,13 @@ kern_return_t read_lines(mach_port_t task, vm_address_t addr, int lines, bool pr
     return KERN_SUCCESS;
 }
 
-kern_return_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[100]) {
-    if (strlen(in) > 100) {
+search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[MAX_INPUT_DATA]) {
+    if (addr == 0x0) {
+        return WRITE_BAD_ADDRESS;
+    }
+    if (strlen(in) > MAX_INPUT_DATA) {
         printf(ERROR"Data in is too large! (> 100)\n");
-        return KERN_FAILURE;
+        return DATA_TOO_LARGE;
     }
 
     in[strlen(in)-1] = '\0';
@@ -101,9 +104,9 @@ kern_return_t write_data(mach_port_t task, bool isString, vm_address_t addr, cha
         scannum = strlen(in)/2;
         if (strlen(in) % 2 != 0) {
             printf(ERROR"Enter an even number of bytes!\n");
-            return KERN_FAILURE;
+            return BYTES_UNEVEN;
         }
-        char tocmpbyte[50][2];
+        char tocmpbyte[MAX_INPUT_DATA / 2][2];
         int numin = 0;
         for (int i=0; i<scannum; i++) {
             tocmpbyte[i][0] = in[numin];
@@ -127,34 +130,31 @@ kern_return_t write_data(mach_port_t task, bool isString, vm_address_t addr, cha
 
     if (kret == KERN_SUCCESS) {
         printf(GOOD"Successfully wrote data!\n");
+        return WRITE_SUCCESS;
     }
-    else {
-        printf(ERROR"Write failed!\n");
-    }
-
+    return WRITE_FAILURE;
 }
 
-kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm_address_t baseaddr, vm_address_t end, vm_address_t *outaddr[256], uint8_t *resultnum, char in[100]) {
-    if (strlen(in) > 100) {
-        printf(ERROR"Data in is too large! (> 100)\n");
-        return KERN_FAILURE;
+search_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm_address_t baseaddr, vm_address_t endaddr, vm_address_t *outaddr[SEARCH_MAX], result_t *resultnum, char in[MAX_INPUT_DATA]) {
+    if (strlen(in) > MAX_INPUT_DATA) {
+        printf(ERROR"Data in is too large! (> %d)\n", MAX_INPUT_DATA);
+        return DATA_TOO_LARGE;
     }
-    int pgsz = getpagesize();
 
-    size_t bytes = pgsz;
-    byte_t readOut[pgsz];
+    size_t bytes = READ_PAGE_SIZE;
+    byte_t readOut[READ_PAGE_SIZE];
     kern_return_t kret;
     int accuracy = 0;
-    uint8_t cmpbyte[100];
+    uint8_t cmpbyte[MAX_INPUT_DATA];
     int scannum;
 
     if (!isString) {
         scannum = (strlen(in)-1)/2;
         if ((strlen(in)-1) % 2 != 0) {
             printf(ERROR"Enter an even number of bytes!\n");
-            return KERN_FAILURE;
+            return BYTES_UNEVEN;
         }
-        char tocmpbyte[50][2];
+        char tocmpbyte[MAX_INPUT_DATA / 2][2];
         int numin = 0;
         for (int i=0; i<scannum; i++) {
             tocmpbyte[i][0] = in[numin];
@@ -170,18 +170,18 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
         }
     }
 
-    uint8_t foundtotal = 0;
-    for (; baseaddr < end; baseaddr+=pgsz) {
+    result_t foundtotal = 0;
+    for (; baseaddr < endaddr; baseaddr+=READ_PAGE_SIZE) {
         kret = vm_read_overwrite(task, baseaddr, bytes, (vm_offset_t) &readOut, &bytes);
         int i;
-        for (i=0; i < pgsz; i++) {
+        for (i=0; i < READ_PAGE_SIZE; i++) {
             if (kret != KERN_SUCCESS) {
                 break;
             }
             accuracy = 0;
             if (cmpbyte[0] == readOut[i]) {
                 accuracy++;
-                for (int j=(i+0x1); j<pgsz; j++) {
+                for (int j=(i+0x1); j<READ_PAGE_SIZE; j++) {
                     if (cmpbyte[accuracy] == (uint8_t) readOut[j]) {
                         accuracy++;
                     }
@@ -192,16 +192,16 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
                         if (quitOnFirstResult) {
                             *resultnum = foundtotal;
                             *outaddr = baseaddr+i;
-                            return KERN_SUCCESS;
+                            return SEARCH_SUCCESS;
                         }
                         else {
                             *(outaddr + foundtotal) = baseaddr+i;
                             foundtotal++;
                             *resultnum = foundtotal;
-                            if (foundtotal == 255) {
+                            if (foundtotal == SEARCH_MAX - 1) {
                                 printf(ERROR"Found max number of supported results!\n");
                                 *resultnum = foundtotal;
-                                return KERN_FAILURE;
+                                return SEARCH_SUCCESS;
                             }
                         }
                     }
@@ -215,7 +215,7 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
         printf(ERROR"Could not find data!\n");
         *resultnum = 0;
         *outaddr = 0;
-        return KERN_FAILURE;
+        return SEARCH_FAILURE;
     }
     if (foundtotal > 0) {
         printf(GOOD"Search complete! RevelariOS found %d results\n", foundtotal);
@@ -224,7 +224,7 @@ kern_return_t search_data(mach_port_t task, bool isString, bool quitOnFirstResul
         printf(ERROR"Could not find data!\n");
         *resultnum = 0;
         *outaddr = 0;
-        return KERN_FAILURE;
+        return SEARCH_FAILURE;
     }
-    return KERN_SUCCESS;
+    return SEARCH_SUCCESS;
 }

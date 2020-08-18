@@ -1,6 +1,6 @@
 # RevelariOS - "To Reveal - for iOS"
 
-RevelariOS is a CLI memory scanner meant for the average user. SearchKit (searchkit.h) is also included for developers to use to add memory searching in their own projects.
+RevelariOS is a CLI memory scanner meant for the average user. SearchKit (SearchKit/SearchKit.h) is also included for developers to use to add memory searching in their own projects.
 
 ## RevelariOS CLI Features:
 
