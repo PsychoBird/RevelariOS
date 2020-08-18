@@ -1,15 +1,7 @@
 #include <stdio.h>
 #include <mach/mach.h>
 #include <unistd.h>
-#include <sys/types.h>
 #include <mach-o/dyld.h>
-#include <string.h>
-#include <stdlib.h>
-#include <mach/vm_map.h>
-#include <stdlib.h>
-#include <sys/sysctl.h>
-#include <pwd.h>
-#include <sys/utsname.h>
 
 #define BLACK   "\033[30m"      /* Black */
 #define RED     "\033[31m"      /* Red */
