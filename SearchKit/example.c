@@ -40,15 +40,15 @@ int main() {
 
     //search bytes
     search_t sret;
-    printf("Searching for MH_MAGIC (0xfeedfacf) in memory. Remember to put bytes in Little Endian for searching!\n");
+    printf("Searching for MH_MAGIC_64 (feedfacf) in memory. Remember to put bytes in Little Endian for searching! The input string now becomes MH_CIGAM_64 (cffaedfe)\n");
     sret = search_data(task, // task obtained by task_for_pid
-                       false, // isString = false - we're not searching for a string (0xfeedfacf)
+                       false, // isString = false - we're not searching for a string (feedfacf)
                        false, // quitOnFirstResult = false - look for SEARCH_MAX (256 default) results
                        base, // base address found by get_region_size
                        end, // end address found by get_region_size
                        &out, // out array found by search_data (256)
                        &results, // out result_t of found number of results (256 max)
-                       "cffaedfe"); // bytes to find - feedfacf (MH_MAGIC) in little endian
+                       "cffaedfe"); // bytes to find - feedfacf (MH_MAGIC_64) in little endian (MH_CIGAM_64)
 
     if (sret != SEARCH_SUCCESS) {
         printf("Search failed with error - %d\n", sret);
@@ -74,7 +74,7 @@ int main() {
     */
 
     //print results
-    printf("PRINTING MH_MAGIC FOUND IN MEMORY\n");
+    printf("PRINTING MH_MAGIC_64 FOUND IN MEMORY\n");
     for (int i=0; i<results; i++) {
         printf("Result #%d - 0x%lx\n", i, out[i]);
     }

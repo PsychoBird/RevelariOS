@@ -35,35 +35,49 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 - Searches for the provided data
 - **mach_port_t task** - task for the process that will be searched
 - **bool isString** - boolean for wether the input data is bytes or simply a string
+- **quitOnFirstResult** - SearchKit will end searching after the first result is found
 - **vm_address_t baseaddr** - base address for searching. Use `*baseaddr` from `get_region_size`
-- **vm_address_t end** - base address for searching. Use `*endaddr` from `get_region_size`
-- **vm_address_t  \*outaddr** - address where the searched data is found (out)
-- **char in[100]** - the data to be searched. if `isString = true`, `search_data` will search for a string. The input string should be `"ABCDE"`. If `isString = false`, `search_data` will search for the provided bytes. The input bytes should be `"6269742e6c792f3368476634696d"`
+- **vm_address_t endaddr** - end address for searching. Use `*endaddr` from `get_region_size`
+- **vm_address_t  \*outaddr[SEARCH_MAX]** - address where the searched data is found (out)
+- **result_t \*resultnum** - amount of results found (out)
+- **char in[MAX_INPUT_DATA]** - the data to be searched. if `isString = true`, `search_data` will search for a string. The input string should be `"ABCDE"`. If `isString = false`, `search_data` will search for the provided bytes. The input bytes should be `"6269742e6c792f3368476634696d"`
 - **RETURN** - SEARCH_SUCCESS / SEARCH_FAILURE / BYTES_UNEVEN / DATA_TOO_LARGE
 
 `search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[100])`
 - **mach_port_t task** - task for the process that will be searched
 - **bool isString** - boolean for wether the input data is bytes or simply a string
 - **vm_address_t** - address to data at
-- **char in[100]** - the data to be searched. if `isString = true`, `search_data` will search for a string. The input string should be `"ABCDE"`. If `isString = false`, `search_data` will search for the provided bytes. The input bytes should be `"6269742e6c792f3368476634696d"`
-- **RETURN** - WRITE_SUCCESS / WRITE_FAILURE / BYTES_UNEVEN / DATA_TOO_LARGE
+- **char in[MAX_INPUT_DATA]** - the data to be searched. if `isString = true`, `search_data` will search for a string. The input string should be `"ABCDE"`. If `isString = false`, `search_data` will search for the provided bytes. The input bytes should be `"6269742e6c792f3368476634696d"`
+- **RETURN** - WRITE_SUCCESS / WRITE_FAILURE / WRITE_BAD_ADDRESS / BYTES_UNEVEN / DATA_TOO_LARGE
 
 ### CONSTANTS
 
-`SEARCH_SUCCESS (0)` - search was successful
+`SEARCH_MAX ((result_t) (~0 >> 1)) + 1` - the max amount of search results supported. The size is the max `result_t` + 1 - 256 by default. Change `typedef result_t` to increase max result size.
 
-`SEARCH_FAILURE (1)` - search failed
+`READ_PAGE_SIZE getpagesize()` - page size of the device
 
-`BYTES_UNEVEN (2)` - bytes attempted to be searched were uneven: ex: "41b". Use "410b" instead
+`MAX_INPUT_DATA 100` - max number of supported characters to input to `write_data` / `search_data`. WARNING: Must be even!
 
-`DATA_TOO_LARGE (3)` - input data is too large for allocated size (standard - 100)
+`SEARCH_SUCCESS 0` - search was successful
 
-`WRITE_SUCCESS (4)` - write was successfully
+`SEARCH_FAILURE 1` - search failed
 
-`WRITE_FAILURE (5)` - write failed
+`BYTES_UNEVEN 2` - bytes attempted to be searched were uneven: ex: "41b". Use "410b" instead
+
+`DATA_TOO_LARGE 3` - input data is too large for allocated size (standard - 100)
+
+`WRITE_SUCCESS 4` - write was successfully
+
+`WRITE_FAILURE 5` - write failed
+
+`WRITE_BAD_ADDRESS 6` - address to write to is not valid
+
+
 
 ### Typedefs
 
 `search_t (int)`
 
 `byte_t (unsigned char)`
+
+`result_t (uint8_t)`
