@@ -35,7 +35,7 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 - Searches for the provided data
 - **mach_port_t task** - task for the process that will be searched
 - **bool isString** - boolean for wether the input data is bytes or simply a string
-- **quitOnFirstResult** - SearchKit will end searching after the first result is found
+- **bool quitOnFirstResult** - SearchKit will end searching after the first result is found
 - **vm_address_t baseaddr** - base address for searching. Use `*baseaddr` from `get_region_size`
 - **vm_address_t endaddr** - end address for searching. Use `*endaddr` from `get_region_size`
 - **vm_address_t  \*outaddr[SEARCH_MAX]** - address where the searched data is found (out)
@@ -46,7 +46,7 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 `search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[100])`
 - **mach_port_t task** - task for the process that will be searched
 - **bool isString** - boolean for wether the input data is bytes or simply a string
-- **vm_address_t** - address to data at
+- **vm_address_t addr** - address to write data to
 - **char in[MAX_INPUT_DATA]** - the data to be searched. if `isString = true`, `search_data` will search for a string. The input string should be `"ABCDE"`. If `isString = false`, `search_data` will search for the provided bytes. The input bytes should be `"6269742e6c792f3368476634696d"`
 - **RETURN** - WRITE_SUCCESS / WRITE_FAILURE / WRITE_BAD_ADDRESS / BYTES_UNEVEN / DATA_TOO_LARGE
 

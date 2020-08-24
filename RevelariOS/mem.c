@@ -190,8 +190,9 @@ search_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm
                     }
                     if (accuracy == scannum) {
                         if (quitOnFirstResult) {
-                            *resultnum = foundtotal;
+                            *resultnum = 1;
                             *outaddr = baseaddr+i;
+                            printf(GOOD"Found result at 0x%lx!\n", baseaddr+i);
                             return SEARCH_SUCCESS;
                         }
                         else {

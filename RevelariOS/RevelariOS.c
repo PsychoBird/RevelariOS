@@ -115,6 +115,16 @@ void interact(pid_t pid, mach_port_t task) {
         else if (strcmp(args[0], "search\n") == 0 || strcmp(args[0], "s\n") == 0) {
             printf(ERROR"Not enough arguments for search!\n");
         }
+        //search_read (2 args)
+        else if ((strcmp(args[0], "searchone") == 0 || strcmp(args[0], "so") == 0) && args[1][0] != '\0') {
+            get_region_size(task, &base, &end);
+            printf(GOOD"Memory Range = 0x%lx - 0x%lx\n", base, end);
+            printf(GOOD"Finding bytes - %s\n", args[1]);
+            search_data(task, false, true, base, end, &out, &resultnum, args[1]);
+        }
+        else if (strcmp(args[0], "searchone\n") == 0 || strcmp(args[0], "so\n") == 0) {
+            printf(ERROR"Not enough arguments for search!\n");
+        }
         //search_read string(2 args)
         else if ((strcmp(args[0], "searchstr") == 0 || strcmp(args[0], "ss") == 0) && args[1][0] != '\0') {
             get_region_size(task, &base, &end);
@@ -123,6 +133,16 @@ void interact(pid_t pid, mach_port_t task) {
             search_data(task, true, false, base, end, &out, &resultnum, args[1]);
         }
         else if (strcmp(args[0], "searchstr\n") == 0 || strcmp(args[0], "ss\n") == 0) {
+            printf(ERROR"Not enough arguments for searchstr!\n");
+        }
+        //search_read string(2 args)
+        else if ((strcmp(args[0], "searchstrone") == 0 || strcmp(args[0], "sso") == 0) && args[1][0] != '\0') {
+            get_region_size(task, &base, &end);
+            printf(GOOD"Memory Range = 0x%lx - 0x%lx\n", base, end);
+            printf(GOOD"Finding string - %s\n", args[1]);
+            search_data(task, true, true, base, end, &out, &resultnum, args[1]);
+        }
+        else if (strcmp(args[0], "searchstrone\n") == 0 || strcmp(args[0], "sso\n") == 0) {
             printf(ERROR"Not enough arguments for searchstr!\n");
         }
 
