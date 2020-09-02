@@ -31,7 +31,7 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 - **vm_address_t \*endaddr** - end address found by get_region_size (out)
 - **RETURN** - KERN_SUCCESS / KERN_FAILURE
 
-`search_t search_data(mach_port_t task, bool isString, vm_address_t baseaddr, vm_address_t end, vm_address_t *outaddr, char in[100])`
+`search_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm_address_t baseaddr, vm_address_t end, vm_address_t *outaddr, char in[100])`
 - Searches for the provided data
 - **mach_port_t task** - task for the process that will be searched
 - **bool isString** - boolean for wether the input data is bytes or simply a string

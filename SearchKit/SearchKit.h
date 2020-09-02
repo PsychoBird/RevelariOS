@@ -62,7 +62,7 @@ search_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm
     kern_return_t kret;
     int accuracy = 0;
     uint8_t cmpbyte[MAX_INPUT_DATA];
-    int scannum;
+    unsigned long scannum;
 
     if (!isString) {
         scannum = strlen(in)/2;
@@ -87,7 +87,7 @@ search_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm
 
     result_t foundtotal = 0;
     for (; baseaddr < endaddr; baseaddr+=READ_PAGE_SIZE) {
-        kret = vm_read_overwrite(task, baseaddr, bytes, (vm_offset_t) &readOut, &bytes);
+        kret = vm_read_overwrite(task, baseaddr, bytes, (vm_offset_t) &readOut, (vm_size_t*) &bytes);
         int i;
         for (i=0; i < READ_PAGE_SIZE; i++) {
             if (kret != KERN_SUCCESS) {
@@ -106,11 +106,11 @@ search_t search_data(mach_port_t task, bool isString, bool quitOnFirstResult, vm
                     if (accuracy == scannum) {
                         if (quitOnFirstResult) {
                             *resultnum = 1;
-                            *outaddr = baseaddr+i;
+                            *outaddr = (vm_address_t*) baseaddr+i;
                             return SEARCH_SUCCESS;
                         }
                         else {
-                            *(outaddr + foundtotal) = baseaddr+i;
+                            *(outaddr + foundtotal) = (vm_address_t*) baseaddr+i;
                             foundtotal++;
                             *resultnum = foundtotal;
                             if (foundtotal == SEARCH_MAX-1) {
@@ -140,9 +140,8 @@ search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[
         return DATA_TOO_LARGE;
     }
 
-    size_t bytes = strlen(in);
     kern_return_t kret;
-    int scannum;
+    unsigned long scannum;
 
     if (!isString) {
         byte_t writebyte[strlen(in)/2];
@@ -158,7 +157,7 @@ search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[
             numin += 2;
             writebyte[i] = (uint8_t) strtol(tocmpbyte[i], NULL, 16);
         }
-        kret = vm_write(task, addr, &writebyte, sizeof(writebyte));
+        kret = vm_write(task, addr, (vm_offset_t) &writebyte, (mach_msg_type_number_t) sizeof(writebyte));
     }
     else {
         byte_t writebyte[strlen(in)];
@@ -166,7 +165,7 @@ search_t write_data(mach_port_t task, bool isString, vm_address_t addr, char in[
         for (int i=0; i<scannum; i++) {
             writebyte[i] = (uint8_t) in[i];
         }
-        kret = vm_write(task, addr, &writebyte, sizeof(writebyte));
+        kret = vm_write(task, addr, (vm_offset_t) &writebyte, (mach_msg_type_name_t) sizeof(writebyte));
     }
 
 
