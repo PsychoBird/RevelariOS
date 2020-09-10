@@ -76,5 +76,5 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 
 `result_t (uint8_t)`
 
-![RevelariOS](revelarios.png)
-![RevelariOS App](revelariosapp.png)
+![RevelariOS](Pics/revelarios.png)
+![RevelariOS App](Pics/revelariosapp.png)
