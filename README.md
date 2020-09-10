@@ -1,28 +1,22 @@
 # RevelariOS - "To Reveal - for iOS"
 
-RevelariOS is a CLI memory scanner meant for the average user. SearchKit (SearchKit/SearchKit.h) is also included for developers to use to add memory searching in their own projects.
+RevelariOS is a memory scanner meant for technical users. RevelariOS comes as an app that is installed to your iDevice and a binary which can be executed by typing 'revelarios' in a Terminal app or over SSH. SearchKit (SearchKit/SearchKit.h) is also included for developers to use to add memory searching in their own projects. The documentation for SearchKit can be found below along with example code in SearchKit/example.c which shows RevelariOS finding instances of MH_MAGIC_64 (feedfacf) in memory.
 
-## RevelariOS CLI Features:
+## RevelariOS Features:
 
-- Search memory for instances of bytes in memory
-- Search memory for instances of string in memory
-- Print all found results
-- Write bytes to memory
-- Write string to memory
-- Read lines of memory as bytes
-- Read lines of memory as a chars
+- Search memory for instances of bytes / strings in memory
+- View found addresses
+- Write bytes / strings to memory
+- Read lines of memory as bytes / characters (CLI only currently)
 - Pause / Resume current task
-
-
-Make sure to sign RevelariOS with ent.xml! RevelariOS can't operate without proper entitlements.
 
 ### Signing RevelariOS
 
-Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent.xml RevelariOS`
+RevelariOS isn't running? Make sure to sign RevelariOS with ent.xml! RevelariOS can't operate without proper entitlements.
 
-![RevelariOS](revelarios.png)
+Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent.xml /path/to/revelarios`
 
-## Docs - searchkit.h
+## Documentation - SearchKit.h
 
 `kern_return_t get_region_size(mach_port_t task, vm_address_t *baseaddr, vm_address_t *endaddr)`
 - Gets memory region for searching
@@ -66,11 +60,11 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 
 `DATA_TOO_LARGE 3` - input data is too large for allocated size (standard - 100)
 
-`WRITE_SUCCESS 4` - write was successfully
+`WRITE_SUCCESS 4` - write was successful
 
 `WRITE_FAILURE 5` - write failed
 
-`WRITE_BAD_ADDRESS 6` - address to write to is not valid
+`WRITE_BAD_ADDRESS 6` - address to write to is invalid
 
 
 
@@ -81,3 +75,6 @@ Use `ldid` for signing RevelariOS. Exactly as typed and as root type `ldid -Sent
 `byte_t (unsigned char)`
 
 `result_t (uint8_t)`
+
+![RevelariOS](revelarios.png)
+![RevelariOS App](revelariosapp.png)

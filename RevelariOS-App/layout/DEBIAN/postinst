@@ -1,0 +1,4 @@
+#!/bin/sh
+
+chmod 777 /Applications/RevelariOS.app/RevelariOS
+chmod +s /Applications/RevelariOS.app/RevelariOS
